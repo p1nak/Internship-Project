@@ -18,7 +18,7 @@ A comprehensive, web-based Quality Control (QC) management system designed to st
 - **Key Features**: Secure role-based login, interactive data dashboard, premium UI/UX (Glassmorphism, Dark/Light modes), and print-optimized reporting.
 - **Documentation**: [Read the full guide](./QC%20control/README.md)
 
-### 3. 🔲 Rhino QR Machine Documentation System (`QR Generator`)
+### 3. 🔲 QR Machine Documentation System (`QR Generator`)
 A robust web application designed to generate and manage QR codes for machine documentation, tailored for industrial shop floor usage.
 - **Core Functionality**: Allows engineers and admins to generate trackable QR codes linked to essential machine documentation and setup guides.
 - **Tech Stack**: Python (Flask).
