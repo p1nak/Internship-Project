@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Document | QR Machine Manager{% endblock %}
+{% block page_heading %}Upload Document{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-6">
+        <div class="card bg-glass border-0 shadow-sm">
+            <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-dark"><i class="bi bi-cloud-arrow-up-fill me-2 text-primary"></i>Upload File</h5>
+                <span class="badge bg-light border border-muted text-dark">{{ machine.machine_name }}</span>
+            </div>
+            <div class="card-body p-4 text-dark">
+                <form action="{{ url_for('documents.upload_document', machine_id=machine.machine_id) }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-3">
+                        <label for="document_name" class="form-label text-muted">Document Name *</label>
+                        <input type="text" class="form-control bg-light border-muted text-dark" id="document_name" name="document_name" placeholder="e.g. User Manual v2" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="document_type" class="form-label text-muted">Document Type *</label>
+                        <select class="form-select bg-light border-muted text-dark" id="document_type" name="document_type" required>
+                            <option value="Manual">Manual</option>
+                            <option value="Drawing">Drawing</option>
+                            <option value="SOP">SOP</option>
+                            <option value="Safety">Safety</option>
+                            <option value="PLC">PLC Program</option>
+                            <option value="Other" selected>Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4 p-4 border border-muted border-dashed rounded text-center position-relative" style="background-color: rgba(255,255,255,0.02);">
+                        <i class="bi bi-file-earmark-arrow-up display-4 text-muted mb-3 d-block"></i>
+                        <input type="file" class="form-control bg-light border-muted text-dark w-75 mx-auto" id="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" required>
+                        <div class="form-text text-secondary mt-2">Max file size: 256MB. Allowed: PDF, DOCX, XLSX, Images.</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end border-top border-muted pt-3 mt-2">
+                        <a href="{{ url_for('machines.profile', machine_id=machine.machine_id) }}#documents" class="btn btn-outline-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary fw-bold"><i class="bi bi-upload me-1"></i> Upload Document</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

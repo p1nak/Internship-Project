@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} | QR Machine Manager{% endblock %}
+{% block page_heading %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-6">
+        <div class="card bg-glass border-0 shadow-sm">
+            <div class="card-header bg-transparent border-muted py-3">
+                <h5 class="mb-0 text-dark"><i class="bi bi-person-badge me-2"></i>{{ form_title }}</h5>
+            </div>
+            <div class="card-body p-4 text-dark">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label text-muted">Username</label>
+                        <input type="text" class="form-control bg-light border-muted text-dark" id="username" name="username" value="{{ user.username if user else '' }}" required {% if user %}readonly{% endif %}>
+                        {% if user %}<div class="form-text text-secondary">Username cannot be changed.</div>{% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label text-muted">Full Name</label>
+                        <input type="text" class="form-control bg-light border-muted text-dark" id="full_name" name="full_name" value="{{ user.full_name if user else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label text-muted">Password</label>
+                        <input type="password" class="form-control bg-light border-muted text-dark" id="password" name="password" {% if not user %}required{% endif %}>
+                        {% if user %}
+                        <div class="form-text text-secondary">Leave blank to keep current password.</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label for="role" class="form-label text-muted">Role</label>
+                            <select class="form-select bg-light border-muted text-dark" id="role" name="role" required>
+                                <option value="operator" {% if user and user.role == 'operator' %}selected{% endif %}>Operator (Read-only)</option>
+                                <option value="engineer" {% if user and user.role == 'engineer' %}selected{% endif %}>Engineer (Add records)</option>
+                                <option value="supervisor" {% if user and user.role == 'supervisor' %}selected{% endif %}>Supervisor</option>
+                                <option value="admin" {% if user and user.role == 'admin' %}selected{% endif %}>Admin (Full Access)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="department" class="form-label text-muted">Department</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="department" name="department" value="{{ user.department if user else '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end border-top border-muted pt-3 mt-2">
+                        <a href="{{ url_for('auth.users') }}" class="btn btn-outline-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary fw-bold"><i class="bi bi-save me-1"></i> Save User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

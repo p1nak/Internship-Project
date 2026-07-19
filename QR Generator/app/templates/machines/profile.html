@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+
+{% block title %}{{ machine.machine_name }} | Machine Profile{% endblock %}
+{% block page_heading %}Machine Profile{% endblock %}
+
+{% block content %}
+
+
+<!-- Profile Header -->
+<div class="card bg-glass border-0 shadow-sm mb-4 overflow-hidden profile-header">
+    <div class="row g-0">
+        <div class="col-md-4 col-xl-3 bg-light d-flex align-items-center justify-content-center p-0 border-end border-muted border-opacity-50" style="min-height: 250px;">
+            {% if machine.image_path %}
+            <img src="{{ url_for('machines.machine_image', filename=machine.image_path) }}" class="img-fluid h-100 w-100 object-fit-cover" alt="{{ machine.machine_name }}">
+            {% else %}
+            <div class="text-center p-5 text-muted opacity-50">
+                <i class="bi bi-gear-wide-connected" style="font-size: 6rem;"></i>
+                <p class="mt-3">No Image</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-md-8 col-xl-9 p-4 p-xl-5">
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-4">
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="d-flex flex-wrap align-items-center mb-2 gap-2">
+                        <span class="badge bg-primary text-dark fs-6">{{ machine.machine_id }}</span>
+                        <span class="badge badge-status-{{ machine.status }} fs-6 px-3">{{ machine.status|replace('_', ' ')|title }}</span>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-3 text-wrap text-break" style="letter-spacing: -0.5px;">{{ machine.machine_name }}</h2>
+                    
+                    <div class="d-flex flex-wrap gap-4 text-muted mb-4">
+                        {% if machine.department %}
+                        <div class="d-flex align-items-center"><i class="bi bi-diagram-3 me-2 text-info"></i> {{ machine.department }}</div>
+                        {% endif %}
+                        {% if machine.location %}
+                        <div class="d-flex align-items-center"><i class="bi bi-geo-alt me-2 text-danger"></i> {{ machine.location }}</div>
+                        {% endif %}
+                        {% if machine.manufacturer %}
+                        <div class="d-flex align-items-center"><i class="bi bi-building me-2 text-primary"></i> {{ machine.manufacturer }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ url_for('reports.machine_report', machine_id=machine.machine_id) }}" class="btn btn-primary fw-bold text-white px-4"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Download Report</a>
+                        
+                        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                        <a href="{{ url_for('machines.edit_machine', machine_id=machine.machine_id) }}" class="btn btn-outline-secondary"><i class="bi bi-pencil me-2"></i>Edit</a>
+                        <form action="{{ url_for('machines.delete_machine', machine_id=machine.machine_id) }}" method="POST" class="d-inline" onsubmit="return confirm('WARNING: This will delete the machine and ALL related records! Are you sure?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="text-md-end flex-shrink-0 d-none d-md-block">
+                    <img src="{{ url_for('static', filename='qrcodes/' + machine.qr_code_path) }}" alt="QR Code" class="bg-white p-1 rounded mb-2 shadow" style="width: 100px; height: 100px;">
+                    <br>
+                    <a href="{{ url_for('machines.qr_print', machine_id=machine.machine_id) }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100"><i class="bi bi-printer me-1"></i> Print QR</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<ul class="nav nav-tabs custom-tabs mb-4 border-bottom border-muted" id="profileTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-semibold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab"><i class="bi bi-info-circle me-2"></i>Overview</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">
+            <i class="bi bi-file-earmark-text me-2"></i>Documents 
+            {% if machine.documents|length > 0 %}<span class="badge bg-secondary ms-1 rounded-pill">{{ machine.documents|length }}</span>{% endif %}
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance" type="button" role="tab"><i class="bi bi-tools me-2"></i>Maintenance</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="breakdowns-tab" data-bs-toggle="tab" data-bs-target="#breakdowns" type="button" role="tab">
+            <i class="bi bi-x-circle me-2"></i>Breakdowns
+            {% if machine.breakdown_records|length > 0 %}<span class="badge bg-danger ms-1 rounded-pill">{{ machine.breakdown_records|length }}</span>{% endif %}
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="spares-tab" data-bs-toggle="tab" data-bs-target="#spares" type="button" role="tab"><i class="bi bi-box-seam me-2"></i>Spare Parts</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab"><i class="bi bi-calendar-event me-2"></i>Schedule</button>
+    </li>
+</ul>
+
+<!-- Tabs Content -->
+<div class="tab-content" id="profileTabsContent">
+    
+    <!-- 1. Overview Tab -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-12 col-lg-8">
+                <div class="card bg-glass border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-muted py-3">
+                        <h6 class="mb-0 text-dark fw-bold">Specifications</h6>
+                    </div>
+                    <div class="card-body text-dark p-0">
+                        <table class="table table-light table-borderless table-striped mb-0">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 35%" class="text-muted ps-4">Machine Type</th>
+                                    <td>{{ machine.machine_type or '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted ps-4">Model</th>
+                                    <td>{{ machine.model or '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted ps-4">Serial Number</th>
+                                    <td><span class="text-monospace">{{ machine.serial_number or '-' }}</span></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted ps-4">Capacity / Rating</th>
+                                    <td>{{ machine.capacity or '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted ps-4">Purchase Date</th>
+                                    <td>{{ machine.purchase_date.strftime('%d %b %Y') if machine.purchase_date else '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted ps-4">Installation Date</th>
+                                    <td>{{ machine.installation_date.strftime('%d %b %Y') if machine.installation_date else '-' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-lg-4">
+                <div class="card bg-glass border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-muted py-3">
+                        <h6 class="mb-0 text-dark fw-bold">System Info</h6>
+                    </div>
+                    <div class="card-body text-dark">
+                        <p class="mb-2"><small class="text-muted d-block">Registered On</small>{{ machine.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+                        <p class="mb-0"><small class="text-muted d-block">Internal ID</small>#{{ machine.id }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 2. Documents Tab -->
+    <div class="tab-pane fade" id="documents" role="tabpanel">
+        <div class="card bg-glass border-0 shadow-sm">
+            <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-dark fw-bold">Machine Documents & Manuals</h6>
+                {% if current_user.is_authenticated and current_user.role in ['admin', 'engineer'] %}
+                <a href="{{ url_for('documents.upload_document', machine_id=machine.machine_id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-upload me-1"></i> Upload File</a>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-light table-hover data-table mb-0 align-middle">
+                        <thead class="table-light-header">
+                            <tr>
+                                <th class="ps-4">Document Name</th>
+                                <th>Type</th>
+                                <th>Uploaded By</th>
+                                <th>Date</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in machine.documents %}
+                            <tr>
+                                <td class="ps-4 fw-semibold">
+                                    <i class="bi bi-file-earmark me-2 text-muted"></i>{{ doc.document_name }}
+                                </td>
+                                <td><span class="badge badge-doctype-{{ doc.document_type|lower|replace(' ', '') }}">{{ doc.document_type }}</span></td>
+                                <td><small>{{ doc.uploaded_by }}</small></td>
+                                <td><small class="text-muted">{{ doc.uploaded_at.strftime('%d %b %Y') }}</small></td>
+                                <td class="text-end pe-4">
+                                    <a href="{{ url_for('documents.download_document', machine_id=machine.machine_id, id=doc.id, inline=1) }}" target="_blank" class="btn btn-sm btn-outline-primary me-1" title="View"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ url_for('documents.download_document', machine_id=machine.machine_id, id=doc.id) }}" class="btn btn-sm btn-outline-info me-1" title="Download"><i class="bi bi-download"></i></a>
+                                    {% if current_user.is_authenticated and current_user.role in ['admin', 'engineer'] %}
+                                    <form action="{{ url_for('documents.delete_document', machine_id=machine.machine_id, id=doc.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this document?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-4">No documents available.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 3. Maintenance Tab -->
+    <div class="tab-pane fade" id="maintenance" role="tabpanel">
+        <div class="card bg-glass border-0 shadow-sm">
+            <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-dark fw-bold">Service History</h6>
+                {% if current_user.is_authenticated and current_user.role in ['admin', 'engineer'] %}
+                <a href="{{ url_for('maintenance.add_maintenance', machine_id=machine.machine_id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-plus-lg me-1"></i> Add Record</a>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-light table-hover data-table mb-0 align-middle">
+                        <thead class="table-light-header">
+                            <tr>
+                                <th class="ps-4">Date</th>
+                                <th>Engineer</th>
+                                <th style="width: 40%">Work Done</th>
+                                <th>Type</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in machine.maintenance_records|sort(attribute='service_date', reverse=True) %}
+                            <tr>
+                                <td class="ps-4 fw-semibold">{{ m.service_date.strftime('%d %b %Y') }}</td>
+                                <td>{{ m.engineer }}</td>
+                                <td class="text-wrap">{{ m.work_done }}</td>
+                                <td><span class="badge {% if m.work_type == 'preventive' %}bg-success{% else %}bg-secondary{% endif %}">{{ m.work_type|title }}</span></td>
+                                <td class="text-end pe-4">
+                                    {% if current_user.is_authenticated and current_user.role in ['admin', 'engineer'] %}
+                                    <a href="{{ url_for('maintenance.edit_maintenance', machine_id=machine.machine_id, id=m.id) }}" class="btn btn-sm btn-outline-info me-1"><i class="bi bi-pencil"></i></a>
+                                    {% endif %}
+                                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                    <form action="{{ url_for('maintenance.delete_maintenance', machine_id=machine.machine_id, id=m.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this record?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-4">No maintenance history recorded.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 4. Breakdowns Tab -->
+    <div class="tab-pane fade" id="breakdowns" role="tabpanel">
+        <div class="card bg-glass border-0 shadow-sm">
+            <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-dark fw-bold">Breakdown Records</h6>
+                {% if current_user.is_authenticated and current_user.role in ['admin', 'engineer', 'supervisor'] %}
+                <a href="{{ url_for('breakdowns.add_breakdown', machine_id=machine.machine_id) }}" class="btn btn-sm btn-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> Log Breakdown</a>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-light table-hover data-table mb-0 align-middle">
+                        <thead class="table-light-header">
+                            <tr>
+                                <th class="ps-4">Date</th>
+                                <th>Problem</th>
+                                <th>Solution</th>
+                                <th>Downtime</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in machine.breakdown_records|sort(attribute='date', reverse=True) %}
+                            <tr>
+                                <td class="ps-4 fw-semibold text-danger">{{ b.date.strftime('%d %b %Y') }}</td>
+                                <td class="text-wrap text-dark">
+                                    <strong>{{ b.problem }}</strong>
+                                    {% if b.root_cause %}<br><small class="text-muted">Cause: {{ b.root_cause }}</small>{% endif %}
+                                </td>
+                                <td class="text-wrap">{{ b.solution or '-' }}</td>
+                                <td><span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 px-2">{{ b.downtime_minutes }} min</span></td>
+                                <td class="text-end pe-4">
+                                    {% if current_user.is_authenticated and current_user.role in ['admin', 'engineer'] %}
+                                    <a href="{{ url_for('breakdowns.edit_breakdown', machine_id=machine.machine_id, id=b.id) }}" class="btn btn-sm btn-outline-info me-1"><i class="bi bi-pencil"></i></a>
+                                    {% endif %}
+                                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                    <form action="{{ url_for('breakdowns.delete_breakdown', machine_id=machine.machine_id, id=b.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this record?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-4">No breakdown history.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 5. Spare Parts Tab -->
+    <div class="tab-pane fade" id="spares" role="tabpanel">
+        <div class="card bg-glass border-0 shadow-sm">
+            <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-dark fw-bold">Spare Parts Inventory</h6>
+                {% if current_user.is_authenticated and current_user.role in ['admin', 'engineer'] %}
+                <a href="{{ url_for('spare_parts.add_spare_part', machine_id=machine.machine_id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-plus-lg me-1"></i> Add Part</a>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-light table-hover data-table mb-0 align-middle">
+                        <thead class="table-light-header">
+                            <tr>
+                                <th class="ps-4">Part Name</th>
+                                <th>Part Number</th>
+                                <th class="text-center">Stock</th>
+                                <th>Cost (₹)</th>
+                                <th>Supplier</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in machine.spare_parts %}
+                            <tr>
+                                <td class="ps-4 fw-semibold text-dark">{{ p.part_name }}</td>
+                                <td class="text-monospace text-muted">{{ p.part_number or '-' }}</td>
+                                <td class="text-center">
+                                    {% if p.quantity <= p.min_stock_level %}
+                                    <span class="badge bg-danger rounded-pill px-3">{{ p.quantity }}</span>
+                                    {% else %}
+                                    <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3">{{ p.quantity }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>₹{{ "%.2f"|format(p.unit_cost) }}</td>
+                                <td>{{ p.supplier or '-' }}</td>
+                                <td class="text-end pe-4">
+                                    {% if current_user.is_authenticated and current_user.role in ['admin', 'engineer'] %}
+                                    <a href="{{ url_for('spare_parts.edit_spare_part', machine_id=machine.machine_id, id=p.id) }}" class="btn btn-sm btn-outline-info me-1"><i class="bi bi-pencil"></i></a>
+                                    {% endif %}
+                                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                    <form action="{{ url_for('spare_parts.delete_spare_part', machine_id=machine.machine_id, id=p.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this part?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="text-center text-muted py-4">No spare parts linked to this machine.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 6. Schedule Tab -->
+    <div class="tab-pane fade" id="schedule" role="tabpanel">
+        <div class="card bg-glass border-0 shadow-sm">
+            <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-dark fw-bold">Preventive Maintenance Schedule</h6>
+                {% if current_user.is_authenticated and current_user.role in ['admin', 'engineer'] %}
+                <a href="{{ url_for('schedules.add_schedule', machine_id=machine.machine_id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-plus-lg me-1"></i> Add Schedule</a>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-light table-hover data-table mb-0 align-middle">
+                        <thead class="table-light-header">
+                            <tr>
+                                <th class="ps-4">Task</th>
+                                <th>Frequency</th>
+                                <th>Assigned To</th>
+                                <th>Last Completed</th>
+                                <th>Next Due</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in machine.schedules|sort(attribute='next_due') %}
+                            {% set is_overdue = (s.next_due < now) %}
+                            <tr>
+                                <td class="ps-4 text-wrap text-dark fw-semibold">{{ s.task_description }}</td>
+                                <td><span class="badge badge-frequency-{{ s.frequency|lower }}">{{ s.frequency }}</span></td>
+                                <td>{{ s.assigned_to or '-' }}</td>
+                                <td class="text-muted">{{ s.last_completed.strftime('%d %b %Y') if s.last_completed else 'Never' }}</td>
+                                <td>
+                                    {% if is_overdue %}
+                                    <span class="text-danger fw-bold"><i class="bi bi-exclamation-circle me-1"></i> {{ s.next_due.strftime('%d %b %Y') }}</span>
+                                    {% else %}
+                                    <span class="text-primary">{{ s.next_due.strftime('%d %b %Y') }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    {% if current_user.is_authenticated and current_user.role in ['admin', 'engineer'] %}
+                                    <form action="{{ url_for('schedules.complete_schedule', machine_id=machine.machine_id, id=s.id) }}" method="POST" class="d-inline me-1" onsubmit="return confirm('Mark this task as completed? It will recalculate the next due date.');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-success" title="Mark Complete"><i class="bi bi-check2-circle"></i></button>
+                                    </form>
+                                    <a href="{{ url_for('schedules.edit_schedule', machine_id=machine.machine_id, id=s.id) }}" class="btn btn-sm btn-outline-info me-1"><i class="bi bi-pencil"></i></a>
+                                    {% endif %}
+                                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                                    <form action="{{ url_for('schedules.delete_schedule', machine_id=machine.machine_id, id=s.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this schedule?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="text-center text-muted py-4">No preventive schedules active.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block no_layout_content %}
+<div class="container py-5">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-gear-wide-connected fs-2 text-primary me-2"></i>
+        <h3 class="mb-0 text-dark fw-bold">QR System</h3>
+    </div>
+    <div class="mb-3">
+        <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-in-right me-1"></i> Staff Login</a>
+    </div>
+    {{ self.content() }}
+</div>
+{% endblock %}

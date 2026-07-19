@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}User Management | QR Machine Manager{% endblock %}
+{% block page_heading %}User Management{% endblock %}
+
+{% block content %}
+<div class="card bg-glass border-0 shadow-sm">
+    <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 text-dark"><i class="bi bi-people me-2"></i>System Users</h5>
+        <a href="{{ url_for('auth.add_user') }}" class="btn btn-primary btn-sm fw-bold">
+            <i class="bi bi-plus-lg me-1"></i> Add User
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-light table-hover data-table mb-0 align-middle">
+                <thead class="table-light-header">
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td><strong>{{ u.username }}</strong></td>
+                        <td>{{ u.full_name }}</td>
+                        <td>
+                            <span class="badge badge-role-{{ u.role }}">{{ u.role|title }}</span>
+                        </td>
+                        <td>{{ u.department or '-' }}</td>
+                        <td>
+                            {% if u.is_active_user %}
+                            <span class="badge badge-status-active">Active</span>
+                            {% else %}
+                            <span class="badge badge-status-inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('auth.edit_user', id=u.id) }}" class="btn btn-sm btn-outline-info me-1" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if current_user.id != u.id %}
+                            <form action="{{ url_for('auth.delete_user', id=u.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-secondary disabled" title="Cannot delete yourself">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No users found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

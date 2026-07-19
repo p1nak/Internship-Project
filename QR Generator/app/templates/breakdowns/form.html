@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Breakdown Record | QR Machine Manager{% endblock %}
+{% block page_heading %}{% if record %}Edit{% else %}Log{% endif %} Breakdown{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-6">
+        <div class="card bg-glass border-0 shadow-sm border-danger border-opacity-25">
+            <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-dark"><i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>Breakdown Report</h5>
+                <span class="badge bg-light border border-muted text-dark">{{ machine.machine_name }}</span>
+            </div>
+            <div class="card-body p-4 text-dark">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="date" class="form-label text-muted">Breakdown Date *</label>
+                            <input type="date" class="form-control bg-light border-muted text-dark" id="date" name="date" value="{{ record.date.strftime('%Y-%m-%d') if record else '' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="engineer" class="form-label text-muted">Attended By</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="engineer" name="engineer" value="{{ record.engineer if record else current_user.full_name }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="problem" class="form-label text-muted">Problem Description *</label>
+                        <textarea class="form-control bg-light border-muted text-dark" id="problem" name="problem" rows="2" placeholder="e.g. Motor not starting, hydraulic leak" required>{{ record.problem if record else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="root_cause" class="form-label text-muted">Root Cause</label>
+                        <textarea class="form-control bg-light border-muted text-dark" id="root_cause" name="root_cause" rows="2" placeholder="e.g. Loose wiring in panel">{{ record.root_cause if record else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="solution" class="form-label text-muted">Solution Applied</label>
+                        <textarea class="form-control bg-light border-muted text-dark" id="solution" name="solution" rows="2" placeholder="e.g. Replaced contactor">{{ record.solution if record else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-4 w-50">
+                        <label for="downtime_minutes" class="form-label text-muted">Downtime (Minutes)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control bg-light border-muted text-dark" id="downtime_minutes" name="downtime_minutes" min="0" value="{{ record.downtime_minutes if record else 0 }}">
+                            <span class="input-group-text bg-light border-muted text-muted">min</span>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end border-top border-muted pt-3 mt-2">
+                        <a href="{{ url_for('machines.profile', machine_id=machine.machine_id) }}#breakdowns" class="btn btn-outline-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-danger fw-bold"><i class="bi bi-save me-1"></i> Save Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

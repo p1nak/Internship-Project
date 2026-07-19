@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Task | QR Machine Manager{% endblock %}
+{% block page_heading %}{% if schedule %}Edit{% else %}Add{% endif %} Preventive Schedule{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-6">
+        <div class="card bg-glass border-0 shadow-sm">
+            <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-dark"><i class="bi bi-calendar-check-fill me-2 text-primary"></i>Preventive Task</h5>
+                <span class="badge bg-light border border-muted text-dark">{{ machine.machine_name }}</span>
+            </div>
+            <div class="card-body p-4 text-dark">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-3">
+                        <label for="task_description" class="form-label text-muted">Task Description *</label>
+                        <textarea class="form-control bg-light border-muted text-dark" id="task_description" name="task_description" rows="2" placeholder="e.g. Lubricate main bearings, Check hydraulic oil level" required>{{ schedule.task_description if schedule else '' }}</textarea>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="frequency" class="form-label text-muted">Frequency *</label>
+                            <select class="form-select bg-light border-muted text-dark" id="frequency" name="frequency" required>
+                                <option value="Daily" {% if schedule and schedule.frequency == 'Daily' %}selected{% endif %}>Daily</option>
+                                <option value="Weekly" {% if schedule and schedule.frequency == 'Weekly' %}selected{% endif %}>Weekly</option>
+                                <option value="Monthly" {% if schedule and schedule.frequency == 'Monthly' %}selected{% endif %}>Monthly</option>
+                                <option value="Quarterly" {% if schedule and schedule.frequency == 'Quarterly' %}selected{% endif %}>Quarterly</option>
+                                <option value="Yearly" {% if schedule and schedule.frequency == 'Yearly' %}selected{% endif %}>Yearly</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="next_due" class="form-label text-muted">Next Due Date *</label>
+                            <input type="date" class="form-control bg-light border-muted text-dark" id="next_due" name="next_due" value="{{ schedule.next_due.strftime('%Y-%m-%d') if schedule else '' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="assigned_to" class="form-label text-muted">Assigned To</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="assigned_to" name="assigned_to" placeholder="Engineer Name" value="{{ schedule.assigned_to if schedule else '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end border-top border-muted pt-3 mt-2">
+                        <a href="{{ url_for('machines.profile', machine_id=machine.machine_id) }}#schedule" class="btn btn-outline-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary fw-bold"><i class="bi bi-save me-1"></i> Save Schedule</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

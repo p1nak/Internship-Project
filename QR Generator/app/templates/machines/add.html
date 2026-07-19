@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Register New Machine | QR Machine Manager{% endblock %}
+{% block page_heading %}Register New Machine{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="card bg-glass border-0 shadow-sm">
+            <div class="card-header bg-transparent border-muted py-3">
+                <h5 class="mb-0 text-dark"><i class="bi bi-hdd-network-fill me-2 text-primary"></i>Machine Details</h5>
+            </div>
+            <div class="card-body p-4 text-dark">
+                <form action="{{ url_for('machines.add_machine') }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <!-- Basic Info -->
+                    <h6 class="text-uppercase text-muted fw-bold mb-3 mt-2" style="letter-spacing: 1px; font-size: 0.85rem;">Basic Information</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="machine_id" class="form-label text-muted">Machine ID *</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="machine_id" name="machine_id" placeholder="e.g. MCH001" required>
+                            <div class="form-text text-secondary">A unique identifier. QR code will be generated based on this ID.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="machine_name" class="form-label text-muted">Machine Name *</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="machine_name" name="machine_name" placeholder="e.g. Hydraulic Press 500T" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="department" class="form-label text-muted">Department</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="department" name="department" placeholder="e.g. Fabrication">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="machine_type" class="form-label text-muted">Machine Type</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="machine_type" name="machine_type" placeholder="e.g. Press, CNC, Lathe">
+                        </div>
+                    </div>
+                    
+                    <hr class="border-muted opacity-25 my-4">
+                    
+                    <!-- Tech Specs -->
+                    <h6 class="text-uppercase text-muted fw-bold mb-3 mt-2" style="letter-spacing: 1px; font-size: 0.85rem;">Technical Specifications</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="manufacturer" class="form-label text-muted">Manufacturer</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="manufacturer" name="manufacturer">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="model" class="form-label text-muted">Model Number</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="model" name="model">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="serial_number" class="form-label text-muted">Serial Number</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="serial_number" name="serial_number">
+                        </div>
+                        <div class="col-md-12">
+                            <label for="capacity" class="form-label text-muted">Capacity/Specification Rating</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="capacity" name="capacity" placeholder="e.g. 500 Tons, 1500 RPM">
+                        </div>
+                    </div>
+                    
+                    <hr class="border-muted opacity-25 my-4">
+                    
+                    <!-- Lifecycle & Location -->
+                    <h6 class="text-uppercase text-muted fw-bold mb-3 mt-2" style="letter-spacing: 1px; font-size: 0.85rem;">Lifecycle & Location</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="purchase_date" class="form-label text-muted">Purchase Date</label>
+                            <input type="date" class="form-control bg-light border-muted text-dark" id="purchase_date" name="purchase_date">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="installation_date" class="form-label text-muted">Installation Date</label>
+                            <input type="date" class="form-control bg-light border-muted text-dark" id="installation_date" name="installation_date">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="location" class="form-label text-muted">Physical Location</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="location" name="location" placeholder="e.g. Plant 2, Shop Floor A">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status" class="form-label text-muted">Initial Status</label>
+                            <select class="form-select bg-light border-muted text-dark" id="status" name="status">
+                                <option value="active" selected>Active</option>
+                                <option value="under_maintenance">Under Maintenance</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="machineImage" class="form-label text-muted">Machine Image</label>
+                            <input class="form-control bg-light border-muted text-dark" type="file" id="machineImage" name="image" accept="image/*">
+                            <div class="form-text text-secondary">Upload a photo of the machine (PNG, JPG).</div>
+                            <!-- Image Preview Area -->
+                            <div id="imagePreviewContainer" class="mt-2 d-none">
+                                <img id="imagePreview" src="" alt="Preview" class="img-thumbnail bg-light border-muted" style="max-height: 150px;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end border-top border-muted pt-4 mt-2">
+                        <a href="{{ url_for('machines.list') }}" class="btn btn-outline-secondary me-3 px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary fw-bold px-4"><i class="bi bi-plus-circle me-2"></i>Register Machine & Generate QR</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

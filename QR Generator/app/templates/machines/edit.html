@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Machine | QR Machine Manager{% endblock %}
+{% block page_heading %}Edit Machine: {{ machine.machine_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="card bg-glass border-0 shadow-sm">
+            <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-dark"><i class="bi bi-pencil-square me-2 text-primary"></i>Update Machine Details</h5>
+                <span class="badge bg-light border border-muted fs-6 text-dark">{{ machine.machine_id }}</span>
+            </div>
+            <div class="card-body p-4 text-dark">
+                <form action="{{ url_for('machines.edit_machine', machine_id=machine.machine_id) }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <!-- Basic Info -->
+                    <h6 class="text-uppercase text-muted fw-bold mb-3 mt-2" style="letter-spacing: 1px; font-size: 0.85rem;">Basic Information</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Machine ID</label>
+                            <input type="text" class="form-control bg-light border-muted text-muted" value="{{ machine.machine_id }}" disabled readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="machine_name" class="form-label text-muted">Machine Name *</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="machine_name" name="machine_name" value="{{ machine.machine_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="department" class="form-label text-muted">Department</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="department" name="department" value="{{ machine.department or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="machine_type" class="form-label text-muted">Machine Type</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="machine_type" name="machine_type" value="{{ machine.machine_type or '' }}">
+                        </div>
+                    </div>
+                    
+                    <hr class="border-muted opacity-25 my-4">
+                    
+                    <!-- Tech Specs -->
+                    <h6 class="text-uppercase text-muted fw-bold mb-3 mt-2" style="letter-spacing: 1px; font-size: 0.85rem;">Technical Specifications</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="manufacturer" class="form-label text-muted">Manufacturer</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="manufacturer" name="manufacturer" value="{{ machine.manufacturer or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="model" class="form-label text-muted">Model Number</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="model" name="model" value="{{ machine.model or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="serial_number" class="form-label text-muted">Serial Number</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="serial_number" name="serial_number" value="{{ machine.serial_number or '' }}">
+                        </div>
+                        <div class="col-md-12">
+                            <label for="capacity" class="form-label text-muted">Capacity/Specification Rating</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="capacity" name="capacity" value="{{ machine.capacity or '' }}">
+                        </div>
+                    </div>
+                    
+                    <hr class="border-muted opacity-25 my-4">
+                    
+                    <!-- Lifecycle & Location -->
+                    <h6 class="text-uppercase text-muted fw-bold mb-3 mt-2" style="letter-spacing: 1px; font-size: 0.85rem;">Lifecycle & Location</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="purchase_date" class="form-label text-muted">Purchase Date</label>
+                            <input type="date" class="form-control bg-light border-muted text-dark" id="purchase_date" name="purchase_date" value="{{ machine.purchase_date if machine.purchase_date else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="installation_date" class="form-label text-muted">Installation Date</label>
+                            <input type="date" class="form-control bg-light border-muted text-dark" id="installation_date" name="installation_date" value="{{ machine.installation_date if machine.installation_date else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="location" class="form-label text-muted">Physical Location</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="location" name="location" value="{{ machine.location or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status" class="form-label text-muted">Status</label>
+                            <select class="form-select bg-light border-muted text-dark" id="status" name="status">
+                                <option value="active" {% if machine.status == 'active' %}selected{% endif %}>Active</option>
+                                <option value="under_maintenance" {% if machine.status == 'under_maintenance' %}selected{% endif %}>Under Maintenance</option>
+                                <option value="inactive" {% if machine.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="machineImage" class="form-label text-muted">Update Machine Image</label>
+                            <input class="form-control bg-light border-muted text-dark" type="file" id="machineImage" name="image" accept="image/*">
+                            <div class="form-text text-secondary">Leave blank to keep current image.</div>
+                            
+                            <div id="imagePreviewContainer" class="mt-2 {% if not machine.image_path %}d-none{% endif %}">
+                                {% if machine.image_path %}
+                                <img id="imagePreview" src="{{ url_for('static', filename='../uploads/machines/' + machine.image_path) }}" alt="Preview" class="img-thumbnail bg-light border-muted" style="max-height: 150px;">
+                                {% else %}
+                                <img id="imagePreview" src="" alt="Preview" class="img-thumbnail bg-light border-muted" style="max-height: 150px;">
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end border-top border-muted pt-4 mt-2">
+                        <a href="{{ url_for('machines.profile', machine_id=machine.machine_id) }}" class="btn btn-outline-secondary me-3 px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary fw-bold px-4"><i class="bi bi-save me-2"></i>Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

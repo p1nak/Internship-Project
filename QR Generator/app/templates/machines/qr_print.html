@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block body_class %}qr-print-page bg-white{% endblock %}
+{% set skip_layout = true %}
+{% block title %}QR Code - {{ machine.machine_id }}{% endblock %}
+
+{% block no_layout_content %}
+<div class="d-flex flex-column align-items-center justify-content-center min-vh-100 bg-white text-dark py-5">
+    
+    <!-- Print Controls (Hidden in print) -->
+    <div class="mb-4 d-print-none text-center">
+        <button onclick="window.print()" class="btn btn-primary px-4 py-2 fw-bold shadow-sm me-2">
+            <i class="bi bi-printer-fill me-2"></i> Print Label
+        </button>
+        <a href="{{ url_for('machines.profile', machine_id=machine.machine_id) }}" class="btn btn-outline-secondary px-4 py-2">
+            <i class="bi bi-arrow-left me-2"></i> Back
+        </a>
+        <p class="text-muted mt-3 small">Use A4 or Label Printer format. Ensure "Print Background Graphics" is checked.</p>
+    </div>
+
+    <!-- Printable Area -->
+    <div class="qr-print-card border border-2 border-dark p-4 bg-white shadow-sm" style="width: 320px; border-radius: 12px; page-break-inside: avoid;">
+        <div class="text-center border-bottom border-dark pb-3 mb-3">
+            <h4 class="fw-bold mb-1 text-uppercase" style="letter-spacing: 1px;">Equipment Details</h4>
+            <span class="badge bg-light text-dark rounded-pill px-3 py-1">Machine Doc System</span>
+        </div>
+        
+        <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='qrcodes/' + machine.qr_code_path) }}" alt="QR Code" class="img-fluid" style="width: 250px; height: 250px;">
+        </div>
+        
+        <div class="text-center">
+            <h5 class="fw-bold mb-1">{{ machine.machine_id }}</h5>
+            <h6 class="mb-2 text-truncate" style="max-width: 100%;">{{ machine.machine_name }}</h6>
+            <div class="small fw-semibold mt-3 text-uppercase border border-dark rounded p-2 d-flex align-items-center justify-content-center">
+                <i class="bi bi-phone me-2 fs-5"></i> Scan for Details
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

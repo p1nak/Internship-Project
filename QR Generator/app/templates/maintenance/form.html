@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Maintenance Record | QR Machine Manager{% endblock %}
+{% block page_heading %}{% if record %}Edit{% else %}Add{% endif %} Maintenance Record{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-6">
+        <div class="card bg-glass border-0 shadow-sm">
+            <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-dark"><i class="bi bi-tools me-2 text-primary"></i>Maintenance Details</h5>
+                <span class="badge bg-light border border-muted text-dark">{{ machine.machine_name }}</span>
+            </div>
+            <div class="card-body p-4 text-dark">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="engineer" class="form-label text-muted">Engineer Name *</label>
+                            <input type="text" class="form-control bg-light border-muted text-dark" id="engineer" name="engineer" value="{{ record.engineer if record else current_user.full_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="service_date" class="form-label text-muted">Service Date *</label>
+                            <input type="date" class="form-control bg-light border-muted text-dark" id="service_date" name="service_date" value="{{ record.service_date.strftime('%Y-%m-%d') if record else '' }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted d-block">Work Type *</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="work_type" id="type_preventive" value="preventive" {% if record and record.work_type == 'preventive' %}checked{% endif %} required>
+                            <label class="btn btn-outline-success" for="type_preventive">Preventive</label>
+                            
+                            <input type="radio" class="btn-check" name="work_type" id="type_corrective" value="corrective" {% if record and record.work_type == 'corrective' %}checked{% elif not record %}checked{% endif %}>
+                            <label class="btn btn-outline-secondary" for="type_corrective">Corrective</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="work_done" class="form-label text-muted">Work Done *</label>
+                        <textarea class="form-control bg-light border-muted text-dark" id="work_done" name="work_done" rows="3" required>{{ record.work_done if record else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="next_service_date" class="form-label text-muted">Next Service Date (Optional)</label>
+                        <input type="date" class="form-control bg-light border-muted text-dark" id="next_service_date" name="next_service_date" value="{{ record.next_service_date.strftime('%Y-%m-%d') if record and record.next_service_date else '' }}">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="notes" class="form-label text-muted">Additional Notes (Optional)</label>
+                        <textarea class="form-control bg-light border-muted text-dark" id="notes" name="notes" rows="2">{{ record.notes if record else '' }}</textarea>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end border-top border-muted pt-3 mt-2">
+                        <a href="{{ url_for('machines.profile', machine_id=machine.machine_id) }}#maintenance" class="btn btn-outline-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary fw-bold"><i class="bi bi-save me-1"></i> Save Record</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

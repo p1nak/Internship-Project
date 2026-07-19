@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block body_class %}login-page{% endblock %}
+{% set skip_layout = true %}
+{% block title %}Login | QR Machine Manager{% endblock %}
+
+{% block no_layout_content %}
+<div class="d-flex align-items-center justify-content-center min-vh-100">
+    <div class="card bg-glass border-0 shadow-lg text-dark" style="width: 100%; max-width: 420px; border-radius: 1rem; backdrop-filter: blur(15px); background: rgba(255, 255, 255, 0.85);">
+        <div class="card-body p-5">
+            <div class="text-center mb-5">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-gear-wide-connected display-4 text-primary"></i>
+                </div>
+                <h3 class="fw-bold mb-1">QR System</h3>
+                <p class="text-muted mb-0">QR Machine Manager</p>
+            </div>
+            
+            <form action="{{ url_for('auth.login') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control bg-light border-muted text-dark" id="username" name="username" placeholder="Username" required autofocus>
+                    <label for="username" class="text-muted">Username</label>
+                </div>
+                
+                <div class="form-floating mb-4">
+                    <input type="password" class="form-control bg-light border-muted text-dark" id="password" name="password" placeholder="Password" required>
+                    <label for="password" class="text-muted">Password</label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm" style="background-color: #9A4F3F; border-color: #9A4F3F; color: #ffffff;">
+                    Sign In <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+            </form>
+            
+            <div class="text-center mt-4">
+                <small class="text-muted">For access, contact the system administrator.</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

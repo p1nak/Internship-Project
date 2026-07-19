@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | QR Machine Manager{% endblock %}
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Summary Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card stat-card stat-card--machines h-100 border-0 bg-glass text-dark shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1 text-uppercase fw-semibold" style="letter-spacing: 1px; font-size: 0.8rem;">Total Machines</p>
+                    <h2 class="mb-0 fw-bold">{{ total_machines }}</h2>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary rounded p-3">
+                    <i class="bi bi-hdd-network fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card stat-card stat-card--due h-100 border-0 bg-glass text-dark shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1 text-uppercase fw-semibold" style="letter-spacing: 1px; font-size: 0.8rem;">Due for Service</p>
+                    <h2 class="mb-0 fw-bold {% if due_service_count > 0 %}text-primary{% endif %}">{{ due_service_count }}</h2>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary rounded p-3">
+                    <i class="bi bi-exclamation-triangle fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card stat-card stat-card--breakdown h-100 border-0 bg-glass text-dark shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1 text-uppercase fw-semibold" style="letter-spacing: 1px; font-size: 0.8rem;">Recent Breakdowns</p>
+                    <h2 class="mb-0 fw-bold {% if recent_breakdown_count > 0 %}text-danger{% endif %}">{{ recent_breakdown_count }}</h2>
+                </div>
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger rounded p-3">
+                    <i class="bi bi-x-circle fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card stat-card stat-card--stock h-100 border-0 bg-glass text-dark shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1 text-uppercase fw-semibold" style="letter-spacing: 1px; font-size: 0.8rem;">Low Stock Parts</p>
+                    <h2 class="mb-0 fw-bold {% if low_stock_count > 0 %}text-info{% endif %}">{{ low_stock_count }}</h2>
+                </div>
+                <div class="stat-icon bg-info bg-opacity-10 text-info rounded p-3">
+                    <i class="bi bi-box-seam fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Upcoming Maintenance -->
+    <div class="col-12 col-xl-8">
+        <div class="card bg-glass border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-muted py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-dark"><i class="bi bi-calendar-check text-primary me-2"></i>Upcoming Maintenance</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-light table-hover data-table mb-0 align-middle">
+                        <thead class="table-light-header">
+                            <tr>
+                                <th>Machine</th>
+                                <th>Task</th>
+                                <th>Frequency</th>
+                                <th>Due Date</th>
+                                {% if current_user.role in ['admin', 'engineer'] %}
+                                <th>Action</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for schedule in upcoming_schedules %}
+                            {% set is_overdue = (schedule.next_due < now) %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('machines.profile', machine_id=schedule.machine.machine_id) }}" class="text-decoration-none text-dark fw-semibold">
+                                        {{ schedule.machine.machine_name }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ schedule.machine.machine_id }}</small>
+                                </td>
+                                <td class="text-truncate" style="max-width: 200px;" title="{{ schedule.task_description }}">{{ schedule.task_description }}</td>
+                                <td><span class="badge badge-frequency-{{ schedule.frequency|lower }}">{{ schedule.frequency }}</span></td>
+                                <td class="{% if is_overdue %}text-danger fw-bold{% else %}text-primary{% endif %}">
+                                    {{ schedule.next_due.strftime('%d %b %Y') }}
+                                </td>
+                                {% if current_user.role in ['admin', 'engineer'] %}
+                                <td>
+                                    <form action="{{ url_for('schedules.complete_schedule', machine_id=schedule.machine.machine_id, id=schedule.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Mark this maintenance as completed?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-success" title="Mark Complete">
+                                            <i class="bi bi-check2-circle"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No upcoming maintenance schedules.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Breakdowns -->
+    <div class="col-12 col-xl-4">
+        <div class="card bg-glass border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-muted py-3">
+                <h5 class="mb-0 text-dark"><i class="bi bi-x-circle text-danger me-2"></i>Recent Breakdowns</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush bg-transparent">
+                    {% for bd in recent_breakdowns %}
+                    <a href="{{ url_for('machines.profile', machine_id=bd.machine.machine_id) }}#breakdowns" class="list-group-item list-group-item-action bg-transparent text-dark border-muted p-3">
+                        <div class="d-flex w-100 justify-content-between mb-1">
+                            <h6 class="mb-0 fw-bold">{{ bd.machine.machine_name }}</h6>
+                            <small class="text-muted">{{ bd.date.strftime('%d %b') }}</small>
+                        </div>
+                        <p class="mb-1 text-truncate">{{ bd.problem }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge bg-danger bg-opacity-25 text-danger"><i class="bi bi-clock-history me-1"></i>{{ bd.downtime_minutes }} min</span>
+                            <small class="text-muted">By: {{ bd.engineer }}</small>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        No recent breakdowns reported.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
