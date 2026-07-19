@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}New Inspection{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="page-header mb-4">
+        <h1><i class="bi bi-clipboard-plus"></i> New Inspection</h1>
+        <p class="text-muted">Complete all sections to submit a quality control inspection report.</p>
+    </div>
+
+    <!-- ===== STEPPER ===== -->
+    <div class="form-stepper mb-4">
+        <div class="step active" data-step="1">
+            <div class="step-number">1</div>
+            <div class="step-label"><i class="bi bi-cpu"></i> Panel Info</div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step" data-step="2">
+            <div class="step-number">2</div>
+            <div class="step-label"><i class="bi bi-list-check"></i> QC Checklist</div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step" data-step="3">
+            <div class="step-number">3</div>
+            <div class="step-label"><i class="bi bi-chat-text"></i> Remarks</div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step" data-step="4">
+            <div class="step-number">4</div>
+            <div class="step-label"><i class="bi bi-cloud-upload"></i> Upload &amp; Submit</div>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('inspection.submit_inspection') }}" enctype="multipart/form-data" data-loading>
+
+        <!-- ===== SECTION 1 — Panel Info ===== -->
+        <div class="form-section" id="section-1">
+            <div class="qc-card">
+                <div class="section-header">
+                    <h3><i class="bi bi-cpu"></i> Panel Information</h3>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="panel_id" class="form-label">Panel ID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="panel_id" name="panel_id" required placeholder="e.g. PNL-2026-001">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="panel_name" class="form-label">Panel Name</label>
+                        <input type="text" class="form-control" id="panel_name" name="panel_name" placeholder="e.g. Main Distribution Panel">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="customer_id" class="form-label">Customer <span class="text-danger">*</span></label>
+                        <select class="form-select" id="customer_id" name="customer_id" required>
+                            <option value="">Select Customer</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.customer_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="project" class="form-label">Project Name</label>
+                        <input type="text" class="form-control" id="project" name="project" placeholder="e.g. Phase-II Expansion">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="panel_type" class="form-label">Panel Type</label>
+                        <select class="form-select" id="panel_type" name="panel_type">
+                            <option value="">Select Type</option>
+                            <option value="MCC">MCC</option>
+                            <option value="PCC">PCC</option>
+                            <option value="APFC">APFC</option>
+                            <option value="VFD Panel">VFD Panel</option>
+                            <option value="Control Panel">Control Panel</option>
+                            <option value="Distribution Board">Distribution Board</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="drawing_no" class="form-label">Drawing Number</label>
+                        <input type="text" class="form-control" id="drawing_no" name="drawing_no" placeholder="e.g. DWG-2026-0045">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="serial_no" class="form-label">Serial Number</label>
+                        <input type="text" class="form-control" id="serial_no" name="serial_no" placeholder="e.g. SN-00123">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="inspection_date" class="form-label">Inspection Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="inspection_date" name="inspection_date" required>
+                    </div>
+                </div>
+                <div class="form-nav mt-4 text-end">
+                    <button type="button" class="btn btn-accent btn-next" onclick="goToStep(2)">Next: QC Checklist <i class="bi bi-arrow-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 2 — QC Checklist ===== -->
+        <div class="form-section" id="section-2" style="display:none">
+            <div class="qc-card">
+                <div class="section-header d-flex justify-content-between align-items-center">
+                    <h3><i class="bi bi-list-check"></i> QC Checklist</h3>
+                    <span id="overallStatus" class="badge-status badge-pending">Incomplete</span>
+                </div>
+                <input type="hidden" id="inspectionStatus" name="status" value="pending">
+                <div class="checklist-grid">
+                    {% for item in checklist_items %}
+                    {% set slug = item.lower().replace(' ', '_') %}
+                    <div class="checklist-item">
+                        <div class="item-label">{{ item }}</div>
+                        <div class="checklist-toggle">
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check checklist-radio" name="checklist_{{ slug }}" id="pass_{{ slug }}" value="pass" autocomplete="off">
+                                <label class="btn btn-pass" for="pass_{{ slug }}"><i class="bi bi-check-lg"></i> Pass</label>
+
+                                <input type="radio" class="btn-check checklist-radio" name="checklist_{{ slug }}" id="fail_{{ slug }}" value="fail" autocomplete="off">
+                                <label class="btn btn-fail" for="fail_{{ slug }}"><i class="bi bi-x-lg"></i> Fail</label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="form-nav mt-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-accent btn-prev" onclick="goToStep(1)"><i class="bi bi-arrow-left"></i> Panel Info</button>
+                    <button type="button" class="btn btn-accent btn-next" onclick="goToStep(3)">Next: Remarks <i class="bi bi-arrow-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 3 — Remarks ===== -->
+        <div class="form-section" id="section-3" style="display:none">
+            <div class="qc-card">
+                <div class="section-header">
+                    <h3><i class="bi bi-chat-text"></i> Remarks &amp; Observations</h3>
+                </div>
+                <div class="mb-3">
+                    <label for="remarks" class="form-label">Inspector Remarks</label>
+                    <textarea class="form-control" id="remarks" name="remarks" rows="6" placeholder="Enter any observations, defects found, corrective actions required, or additional notes…"></textarea>
+                </div>
+                <div class="form-nav mt-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-accent btn-prev" onclick="goToStep(2)"><i class="bi bi-arrow-left"></i> QC Checklist</button>
+                    <button type="button" class="btn btn-accent btn-next" onclick="goToStep(4)">Next: Upload &amp; Submit <i class="bi bi-arrow-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 4 — Upload & Submit ===== -->
+        <div class="form-section" id="section-4" style="display:none">
+            <div class="qc-card">
+                <div class="section-header">
+                    <h3><i class="bi bi-cloud-upload"></i> Upload Defect Photos</h3>
+                </div>
+                <div class="upload-zone" id="uploadZone">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <p>Drag &amp; drop images here or <span class="browse-link" onclick="document.getElementById('imageInput').click()">browse files</span></p>
+                    <div class="upload-count">0 / 3 images selected</div>
+                    <small class="text-muted">JPG, JPEG, PNG — Max 5MB each</small>
+                </div>
+                <input type="file" id="imageInput" name="images" multiple accept=".jpg,.jpeg,.png" style="display:none">
+                <div id="imagePreviewGrid" class="image-preview-grid mt-3"></div>
+                <div class="form-nav mt-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-accent btn-prev" onclick="goToStep(3)"><i class="bi bi-arrow-left"></i> Remarks</button>
+                    <button type="submit" class="btn btn-accent btn-submit"><i class="bi bi-check-lg"></i> Submit Inspection</button>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // ---------- Default inspection date to today ----------
+    const dateInput = document.getElementById('inspection_date');
+    if (dateInput && !dateInput.value) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    // ---------- Checklist status tracking ----------
+    document.querySelectorAll('.checklist-radio').forEach(function (radio) {
+        radio.addEventListener('change', updateOverallStatus);
+    });
+
+    // The upload zone logic is handled centrally by static/js/main.js
+});
+
+// ---------- Stepper navigation ----------
+function goToStep(step) {
+    // Hide all sections
+    document.querySelectorAll('.form-section').forEach(function (sec) {
+        sec.style.display = 'none';
+    });
+    // Show target section
+    const target = document.getElementById('section-' + step);
+    if (target) target.style.display = 'block';
+
+    // Update stepper
+    document.querySelectorAll('.form-stepper .step').forEach(function (s) {
+        const sStep = parseInt(s.getAttribute('data-step'));
+        s.classList.remove('active', 'completed');
+        if (sStep === step) {
+            s.classList.add('active');
+        } else if (sStep < step) {
+            s.classList.add('completed');
+        }
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ---------- Overall checklist status ----------
+function updateOverallStatus() {
+    const radios = document.querySelectorAll('.checklist-radio');
+    const groups = {};
+    radios.forEach(function (r) {
+        if (!groups[r.name]) groups[r.name] = null;
+        if (r.checked) groups[r.name] = r.value;
+    });
+
+    const values = Object.values(groups);
+    const badge = document.getElementById('overallStatus');
+    const hidden = document.getElementById('inspectionStatus');
+
+    if (values.includes('fail')) {
+        badge.className = 'badge-status badge-fail';
+        badge.textContent = 'FAIL';
+        hidden.value = 'fail';
+    } else if (values.every(function (v) { return v === 'pass'; }) && values.length > 0) {
+        badge.className = 'badge-status badge-pass';
+        badge.textContent = 'PASS';
+        hidden.value = 'pass';
+    } else {
+        badge.className = 'badge-status badge-pending';
+        badge.textContent = 'Incomplete';
+        hidden.value = 'pending';
+    }
+}
+</script>
+{% endblock %}

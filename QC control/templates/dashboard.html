@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<!-- DataTables CSS for dynamic/responsive tables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+    <!-- ─── Page Header ─── -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="page-title mb-1">Dashboard</h1>
+            <p class="page-subtitle mb-0">Quality Control Overview</p>
+        </div>
+        <span class="badge bg-accent rounded-pill fs-6 px-3 py-2">
+            <i class="bi bi-clipboard-data me-1"></i>{{ stats.total }} Total Inspections
+        </span>
+    </div>
+
+    <!-- ─── Stat Cards ─── -->
+    <div class="stat-grid">
+        <!-- Today's Inspections -->
+        <div class="animate-in">
+            <div class="stat-card stat-total">
+                <div class="stat-icon">
+                    <i class="bi bi-clipboard-check"></i>
+                </div>
+                <div class="stat-value">{{ stats.today }}</div>
+                <div class="stat-label">Today's Inspections</div>
+            </div>
+        </div>
+
+        <!-- Passed -->
+        <div class="animate-in">
+            <div class="stat-card stat-passed">
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-value">{{ stats.passed }}</div>
+                <div class="stat-label">Passed</div>
+            </div>
+        </div>
+
+        <!-- Failed -->
+        <div class="animate-in">
+            <div class="stat-card stat-failed">
+                <div class="stat-icon">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+                <div class="stat-value">{{ stats.failed }}</div>
+                <div class="stat-label">Failed</div>
+            </div>
+        </div>
+
+        <!-- Pending -->
+        <div class="animate-in">
+            <div class="stat-card stat-pending">
+                <div class="stat-icon">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="stat-value">{{ stats.pending }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Quick Actions ─── -->
+    <div class="row g-3 mb-4">
+        {% if session.get('role') in ['inspector', 'admin'] %}
+        <div class="col-auto">
+            <a href="{{ url_for('inspection.new_inspection') }}" class="btn btn-accent">
+                <i class="bi bi-plus-circle me-2"></i>New Inspection
+            </a>
+        </div>
+        {% endif %}
+        <div class="col-auto">
+            <a href="{{ url_for('search.search_page') }}" class="btn btn-outline-accent">
+                <i class="bi bi-search me-2"></i>Search Records
+            </a>
+        </div>
+    </div>
+
+    <!-- ─── Recent Inspections ─── -->
+    <div class="qc-card">
+        <div class="section-header">
+            <i class="bi bi-clock-history me-2"></i>Recent Inspections
+        </div>
+
+        {% if recent_inspections %}
+        <div class="table-responsive">
+            <table id="recentInspectionsTable" class="table qc-table align-middle mb-0" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Panel ID</th>
+                        <th>Customer</th>
+                        <th>Inspector</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insp in recent_inspections %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <span class="fw-semibold">{{ insp.panel_code }}</span>
+                        </td>
+                        <td>{{ insp.customer_name or '—' }}</td>
+                        <td>{{ insp.inspector_name }}</td>
+                        <td>{{ insp.inspection_date }}</td>
+                        <td>
+                            {% if insp.status == 'pass' %}
+                                <span class="badge-status badge-pass">
+                                    <i class="bi bi-check-circle me-1"></i>Pass
+                                </span>
+                            {% elif insp.status == 'fail' %}
+                                <span class="badge-status badge-fail">
+                                    <i class="bi bi-x-circle me-1"></i>Fail
+                                </span>
+                            {% else %}
+                                <span class="badge-status badge-pending">
+                                    <i class="bi bi-clock me-1"></i>Pending
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('inspection.view_inspection', inspection_id=insp.id) }}"
+                               class="btn btn-ghost btn-sm"
+                               title="View inspection details">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-inbox fs-1 text-muted"></i>
+            <p class="mt-3 text-muted">No inspections recorded yet.</p>
+            {% if session.get('role') in ['inspector', 'admin'] %}
+            <a href="{{ url_for('inspection.new_inspection') }}" class="btn btn-accent btn-sm">
+                <i class="bi bi-plus-circle me-2"></i>Create First Inspection
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- jQuery (required for DataTables) -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<!-- DataTables Responsive JS -->
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#recentInspectionsTable').DataTable({
+        responsive: true,
+        pageLength: 5,
+        lengthMenu: [5, 10, 25],
+        order: [], // Let the backend sorting stand, or change to [[4, 'desc']]
+        language: {
+            search: "",
+            searchPlaceholder: "Search inspections..."
+        },
+        columnDefs: [
+            { orderable: false, targets: 6 } // Disable sorting on the Actions column
+        ]
+    });
+});
+</script>
+{% endblock %}

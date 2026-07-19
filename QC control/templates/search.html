@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Search Records{% endblock %}
+
+{% block extra_head %}
+<!-- DataTables CSS for responsive tables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="bi bi-search"></i> Search Records
+    </h1>
+    <p class="page-subtitle">Find and filter inspection records across all parameters</p>
+</div>
+
+<!-- Filters Card -->
+<div class="qc-card">
+    <div class="section-header">
+        <i class="bi bi-funnel"></i>
+        <h3>Filters</h3>
+    </div>
+
+    <form method="GET" action="{{ url_for('search.search_page') }}">
+        <div class="search-filters">
+            <div class="form-group">
+                <label for="panel_id" class="form-label">Panel ID</label>
+                <input type="text"
+                       class="form-control"
+                       id="panel_id"
+                       name="panel_id"
+                       placeholder="e.g. PNL-001"
+                       value="{{ request.args.get('panel_id', '') }}">
+            </div>
+
+            <div class="form-group">
+                <label for="customer" class="form-label">Customer</label>
+                <input type="text"
+                       class="form-control"
+                       id="customer"
+                       name="customer"
+                       placeholder="Customer name"
+                       value="{{ request.args.get('customer', '') }}">
+            </div>
+
+            <div class="form-group">
+                <label for="project" class="form-label">Project</label>
+                <input type="text"
+                       class="form-control"
+                       id="project"
+                       name="project"
+                       placeholder="Project name"
+                       value="{{ request.args.get('project', '') }}">
+            </div>
+
+            <div class="form-group">
+                <label for="inspector" class="form-label">Inspector</label>
+                <input type="text"
+                       class="form-control"
+                       id="inspector"
+                       name="inspector"
+                       placeholder="Inspector name"
+                       value="{{ request.args.get('inspector', '') }}">
+            </div>
+
+            <div class="form-group">
+                <label for="date_from" class="form-label">Date From</label>
+                <input type="date"
+                       class="form-control"
+                       id="date_from"
+                       name="date_from"
+                       value="{{ request.args.get('date_from', '') }}">
+            </div>
+
+            <div class="form-group">
+                <label for="date_to" class="form-label">Date To</label>
+                <input type="date"
+                       class="form-control"
+                       id="date_to"
+                       name="date_to"
+                       value="{{ request.args.get('date_to', '') }}">
+            </div>
+
+            <div class="form-group">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-control" id="status" name="status">
+                    <option value="">All Statuses</option>
+                    <option value="pass" {% if request.args.get('status') == 'pass' %}selected{% endif %}>Pass</option>
+                    <option value="fail" {% if request.args.get('status') == 'fail' %}selected{% endif %}>Fail</option>
+                    <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-accent">
+                <i class="bi bi-search"></i> Search
+            </button>
+            <a href="{{ url_for('search.search_page') }}" class="btn btn-ghost">
+                <i class="bi bi-x-circle"></i> Clear
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Results Section -->
+{% if results %}
+<div class="results-header">
+    <span class="results-badge">
+        <i class="bi bi-list-check"></i> Found <strong>{{ total }}</strong> results
+    </span>
+</div>
+
+<div class="qc-card">
+    <div class="table-responsive">
+        <table id="searchResultsTable" class="table qc-table dt-responsive nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Panel ID</th>
+                    <th>Customer</th>
+                    <th>Project</th>
+                    <th>Inspector</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td>{{ loop.index + (page - 1) * 20 }}</td>
+                    <td><strong>{{ r.panel_code or r.get('panel_code', 'N/A') }}</strong></td>
+                    <td>{{ r.customer_name or r.get('customer_name', '') }}</td>
+                    <td>{{ r.project_name or r.get('project_name', '') }}</td>
+                    <td>{{ r.inspector_name or r.get('inspector_name', '') }}</td>
+                    <td>{{ r.inspection_date or r.get('inspection_date', '') }}</td>
+                    <td>
+                        {% set st = (r.overall_result or r.get('overall_result', 'pending'))|lower %}
+                        <span class="badge-status badge-{{ st }}">
+                            {% if st == 'pass' %}
+                                <i class="bi bi-check-circle-fill"></i> Pass
+                            {% elif st == 'fail' %}
+                                <i class="bi bi-x-circle-fill"></i> Fail
+                            {% else %}
+                                <i class="bi bi-clock-fill"></i> Pending
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="action-buttons">
+                        <a href="{{ url_for('inspection.view_inspection', inspection_id=r.id or r.get('id', 0)) }}"
+                           class="btn btn-ghost btn-sm"
+                           title="View Details">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                        <a href="{{ url_for('reports.generate_report', inspection_id=r.id or r.get('id', 0)) }}"
+                           class="btn btn-ghost btn-sm"
+                           title="Download PDF">
+                            <i class="bi bi-file-pdf"></i> PDF
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% elif has_filters %}
+<!-- No Results Empty State -->
+<div class="qc-card">
+    <div class="empty-state">
+        <i class="bi bi-search" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5;"></i>
+        <h3>No Results Found</h3>
+        <p>No inspection records match your search criteria. Try adjusting your filters.</p>
+        <a href="{{ url_for('search.search_page') }}" class="btn btn-ghost">
+            <i class="bi bi-arrow-counterclockwise"></i> Clear Filters
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<nav class="pagination-wrapper" aria-label="Search results pagination">
+    <ul class="pagination">
+        {# Previous Button #}
+        {% if page > 1 %}
+            {% set prev_args = dict(request.args) %}
+            {% set _ = prev_args.update({'page': page - 1}) %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('search.search_page', **prev_args) }}">
+                    <i class="bi bi-chevron-left"></i> Previous
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link"><i class="bi bi-chevron-left"></i> Previous</span>
+            </li>
+        {% endif %}
+
+        {# Page Numbers — show max 5 around current #}
+        {% set start_page = [page - 2, 1] | max %}
+        {% set end_page = [start_page + 4, total_pages] | min %}
+        {% set start_page = [end_page - 4, 1] | max %}
+
+        {% if start_page > 1 %}
+            {% set first_args = dict(request.args) %}
+            {% set _ = first_args.update({'page': 1}) %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('search.search_page', **first_args) }}">1</a>
+            </li>
+            {% if start_page > 2 %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+        {% endif %}
+
+        {% for p in range(start_page, end_page + 1) %}
+            {% set page_args = dict(request.args) %}
+            {% set _ = page_args.update({'page': p}) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('search.search_page', **page_args) }}">{{ p }}</a>
+            </li>
+        {% endfor %}
+
+        {% if end_page < total_pages %}
+            {% if end_page < total_pages - 1 %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+            {% set last_args = dict(request.args) %}
+            {% set _ = last_args.update({'page': total_pages}) %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('search.search_page', **last_args) }}">{{ total_pages }}</a>
+            </li>
+        {% endif %}
+
+        {# Next Button #}
+        {% if page < total_pages %}
+            {% set next_args = dict(request.args) %}
+            {% set _ = next_args.update({'page': page + 1}) %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('search.search_page', **next_args) }}">
+                    Next <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next <i class="bi bi-chevron-right"></i></span>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- jQuery (required for DataTables) -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<!-- DataTables Responsive JS -->
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#searchResultsTable').DataTable({
+        responsive: true,
+        paging: false,
+        searching: false,
+        ordering: false,
+        info: false
+    });
+});
+</script>
+{% endblock %}

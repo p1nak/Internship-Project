@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Inspection #{{ data.inspection.id }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-start mb-4">
+        <div>
+            <h1><i class="bi bi-file-earmark-check"></i> Inspection Report</h1>
+            <p class="text-muted mb-0">Panel: <strong>{{ data.inspection.panel_code }}</strong></p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap mt-2 mt-md-0">
+            <a href="{{ url_for('reports.generate_report', inspection_id=data.inspection.id) }}" class="btn btn-accent"><i class="bi bi-file-earmark-pdf"></i> Download PDF</a>
+            <button class="btn btn-outline-accent" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+            <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> Back</a>
+        </div>
+    </div>
+
+    <!-- ===== RESULT BANNER ===== -->
+    {% if data.inspection.status == 'pass' %}
+    <div class="result-banner result-pass">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>PASSED</span>
+    </div>
+    {% elif data.inspection.status == 'fail' %}
+    <div class="result-banner result-fail">
+        <i class="bi bi-x-circle-fill"></i>
+        <span>FAILED</span>
+    </div>
+    {% else %}
+    <div class="result-banner result-pending">
+        <i class="bi bi-dash-circle-fill"></i>
+        <span>PENDING</span>
+    </div>
+    {% endif %}
+
+    <!-- ===== TWO-COLUMN LAYOUT ===== -->
+    <div class="row g-4 mt-2">
+
+        <!-- Left — Panel Details -->
+        <div class="col-lg-6">
+            <div class="qc-card">
+                <div class="section-header">
+                    <h3><i class="bi bi-cpu"></i> Panel Details</h3>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <span class="detail-label">Panel ID</span>
+                        <span class="detail-value">{{ data.inspection.panel_code }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Panel Name</span>
+                        <span class="detail-value">{{ data.inspection.panel_name or '—' }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Customer</span>
+                        <span class="detail-value">{{ data.inspection.customer_name or '—' }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Project</span>
+                        <span class="detail-value">{{ data.inspection.project or '—' }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Panel Type</span>
+                        <span class="detail-value">{{ data.inspection.panel_type or '—' }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Drawing No.</span>
+                        <span class="detail-value">{{ data.inspection.drawing_no or '—' }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Serial No.</span>
+                        <span class="detail-value">{{ data.inspection.serial_no or '—' }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Date</span>
+                        <span class="detail-value">{{ data.inspection.inspection_date }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Inspector</span>
+                        <span class="detail-value">{{ data.inspection.inspector_name or '—' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right — QC Checklist -->
+        <div class="col-lg-6">
+            <div class="qc-card">
+                <div class="section-header">
+                    <h3><i class="bi bi-list-check"></i> QC Checklist</h3>
+                </div>
+                <table class="qc-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.checklist %}
+                        <tr>
+                            <td>{{ item.checklist_item }}</td>
+                            <td>
+                                {% if item.result == 'pass' %}
+                                <span class="badge rounded-pill bg-success px-3 py-2"><i class="bi bi-check-circle-fill"></i> PASS</span>
+                                {% elif item.result == 'fail' %}
+                                <span class="badge rounded-pill bg-danger px-3 py-2"><i class="bi bi-x-circle-fill"></i> FAIL</span>
+                                {% else %}
+                                <span class="badge rounded-pill bg-warning px-3 py-2"><i class="bi bi-dash-circle"></i> PENDING</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== REMARKS ===== -->
+    <div class="row g-4 mt-0">
+        <div class="col-12">
+            <div class="qc-card">
+                <div class="section-header">
+                    <h3><i class="bi bi-chat-text"></i> Remarks</h3>
+                </div>
+                {% if data.inspection.remarks %}
+                <p class="mb-0" style="white-space:pre-wrap;">{{ data.inspection.remarks }}</p>
+                {% else %}
+                <p class="text-muted fst-italic mb-0">No remarks provided.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DEFECT PHOTOS ===== -->
+    <div class="row g-4 mt-0">
+        <div class="col-12">
+            <div class="qc-card">
+                <div class="section-header">
+                    <h3><i class="bi bi-images"></i> Defect Photos</h3>
+                </div>
+                {% if data.images %}
+                <div class="gallery-grid">
+                    {% for img in data.images %}
+                    <div class="gallery-item">
+                        <img src="{{ url_for('inspection.uploaded_file', filename=img.image_path) }}" alt="Defect photo" loading="lazy">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-image"></i>
+                    <p>No defect photos uploaded.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="bi bi-shield-lock"></i> Admin Panel
+    </h1>
+    <p class="page-subtitle">Manage users, customers &amp; system</p>
+</div>
+
+<div class="row">
+    <!-- ═══════════════ User Management ═══════════════ -->
+    <div class="col-lg-6">
+        <div class="admin-card qc-card">
+            <div class="card-header">
+                <h3><i class="bi bi-people"></i> User Management</h3>
+                <span class="header-badge">{{ users | length }} users</span>
+            </div>
+            <div class="card-body">
+                <!-- Add User Form -->
+                <form method="POST" action="{{ url_for('admin.add_user_route') }}" class="admin-form">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="username" class="form-label">Username *</label>
+                                <input type="text" class="form-control" id="username"
+                                       name="username" required placeholder="Enter username">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="password" class="form-label">Password *</label>
+                                <input type="password" class="form-control" id="password"
+                                       name="password" required placeholder="Enter password">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="full_name" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="full_name"
+                                       name="full_name" required placeholder="Full name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="role" class="form-label">Role</label>
+                                <select class="form-control" id="role" name="role">
+                                    <option value="inspector">Inspector</option>
+                                    <option value="manager">Manager</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email"
+                                       name="email" placeholder="user@example.com">
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-flex align-end">
+                            <button type="submit" class="btn btn-accent btn-full">
+                                <i class="bi bi-person-plus"></i> Add User
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <hr class="divider">
+
+                <!-- Users Table -->
+                <div class="table-responsive">
+                    <table class="qc-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Role</th>
+                                <th>Email</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td><strong>{{ user.username }}</strong></td>
+                                <td>{{ user.full_name }}</td>
+                                <td>
+                                    <span class="role-badge role-{{ user.role }}">
+                                        {% if user.role == 'admin' %}
+                                            <i class="bi bi-shield-fill"></i>
+                                        {% elif user.role == 'manager' %}
+                                            <i class="bi bi-person-badge"></i>
+                                        {% else %}
+                                            <i class="bi bi-person"></i>
+                                        {% endif %}
+                                        {{ user.role | capitalize }}
+                                    </span>
+                                </td>
+                                <td>{{ user.email or '—' }}</td>
+                                <td>
+                                    {% if user.role != 'admin' %}
+                                    <form method="POST"
+                                          action="{{ url_for('admin.delete_user_route', user_id=user.id) }}"
+                                          style="display:inline;">
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Delete user {{ user.username }}? This action cannot be undone.')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-muted" title="Cannot delete admin">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ Customer Management ═══════════════ -->
+    <div class="col-lg-6">
+        <div class="admin-card qc-card">
+            <div class="card-header">
+                <h3><i class="bi bi-building"></i> Customer Management</h3>
+                <span class="header-badge">{{ customers | length }} customers</span>
+            </div>
+            <div class="card-body">
+                <!-- Add Customer Form -->
+                <form method="POST" action="{{ url_for('admin.add_customer_route') }}" class="admin-form inline-form">
+                    <div class="form-group flex-grow">
+                        <label for="customer_name" class="form-label">Customer Name</label>
+                        <input type="text" class="form-control" id="customer_name"
+                               name="customer_name" required placeholder="Enter customer name">
+                    </div>
+                    <button type="submit" class="btn btn-accent">
+                        <i class="bi bi-plus-circle"></i> Add
+                    </button>
+                </form>
+
+                <hr class="divider">
+
+                <!-- Customers Table -->
+                <div class="table-responsive">
+                    <table class="qc-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Customer Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for customer in customers %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td><strong>{{ customer.customer_name or customer.name }}</strong></td>
+                                <td>
+                                    <form method="POST"
+                                          action="{{ url_for('admin.delete_customer_route', cust_id=customer.id) }}"
+                                          style="display:inline;">
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Delete customer {{ customer.customer_name or customer.name }}? This action cannot be undone.')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ System & Backup ═══════════════ -->
+<div class="row">
+    <div class="col-12 mt-4">
+        <div class="admin-card qc-card">
+            <div class="card-header">
+                <h3><i class="bi bi-gear"></i> System &amp; Backup</h3>
+            </div>
+            <div class="card-body">
+                <div class="system-stats">
+                    <div class="stat-item">
+                        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ stats.total_users if stats else users | length }}</span>
+                            <span class="stat-label">Total Users</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon"><i class="bi bi-building"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ stats.total_customers if stats else customers | length }}</span>
+                            <span class="stat-label">Total Customers</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon"><i class="bi bi-clipboard-check"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ stats.total_inspections if stats else 0 }}</span>
+                            <span class="stat-label">Total Inspections</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="backup-section">
+                    <p class="backup-info">
+                        <i class="bi bi-info-circle"></i>
+                        Download a complete backup of the QC database. Keep backups in a safe location.
+                    </p>
+                    <a href="{{ url_for('admin.backup_db') }}" class="btn btn-outline-accent">
+                        <i class="bi bi-download"></i> Download Database Backup
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
