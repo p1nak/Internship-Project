@@ -1,0 +1,980 @@
+﻿{
+  "__inputs": [
+    {
+      "name": "DS_INFLUXDB",
+      "label": "InfluxDB",
+      "description": "InfluxDB 2.x data source (Flux query language)",
+      "type": "datasource",
+      "pluginId": "influxdb",
+      "pluginName": "InfluxDB"
+    }
+  ],
+  "__requires": [
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "10.0.0" },
+    { "type": "datasource", "id": "influxdb", "name": "InfluxDB", "version": "1.0.0" },
+    { "type": "panel", "id": "stat", "name": "Stat", "version": "" },
+    { "type": "panel", "id": "timeseries", "name": "Time series", "version": "" },
+    { "type": "panel", "id": "gauge", "name": "Gauge", "version": "" },
+    { "type": "panel", "id": "piechart", "name": "Pie chart", "version": "" },
+    { "type": "panel", "id": "barchart", "name": "Bar chart", "version": "" },
+    { "type": "panel", "id": "table", "name": "Table", "version": "" },
+    { "type": "panel", "id": "text", "name": "Text", "version": "" }
+  ],
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "📊 KPI Overview",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "#EAB839", "value": 416 },
+              { "color": "red", "value": 419 }
+            ]
+          },
+          "unit": "volt",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 1 },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "⚡ Voltage",
+      "type": "stat",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Voltage\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "#EAB839", "value": 25 },
+              { "color": "red", "value": 32 }
+            ]
+          },
+          "unit": "amp",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 1 },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "🔌 Current",
+      "type": "stat",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Current\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "#EAB839", "value": 18 },
+              { "color": "red", "value": 22 }
+            ]
+          },
+          "unit": "kwatt",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 6, "y": 1 },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "💡 Power",
+      "type": "stat",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Power\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "green", "value": 200 },
+              { "color": "#EAB839", "value": 800 }
+            ]
+          },
+          "unit": "kwatth",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 10, "y": 1 },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "🔋 Energy",
+      "type": "stat",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Energy\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> sum()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "#EAB839", "value": 0.93 },
+              { "color": "green", "value": 0.97 }
+            ]
+          },
+          "unit": "none",
+          "decimals": 3,
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 3, "x": 14, "y": 1 },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "📐 Power Factor",
+      "type": "stat",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"PowerFactor\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "#EAB839", "value": 49.9 },
+              { "color": "green", "value": 49.95 }
+            ]
+          },
+          "unit": "hertz",
+          "decimals": 2,
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 3, "x": 17, "y": 1 },
+      "id": 6,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "〰️ Frequency",
+      "type": "stat",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Frequency\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "#EAB839", "value": 55 },
+              { "color": "red", "value": 65 }
+            ]
+          },
+          "unit": "celsius",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "id": 7,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "🌡️ Temperature",
+      "type": "stat",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Temperature\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "🚨 Alarms",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 65 }
+            ]
+          },
+          "unit": "celsius",
+          "mappings": [
+            { "type": "range", "options": { "from": 65, "to": 999, "result": { "text": "🔥 HIGH TEMPERATURE ALERT", "color": "red" } } },
+            { "type": "range", "options": { "from": 0, "to": 64.99, "result": { "text": "✅ Normal", "color": "green" } } }
+          ]
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 12, "x": 0, "y": 6 },
+      "id": 8,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["max"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "🌡️ High Temperature Alert (> 65°C)",
+      "type": "stat",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Temperature\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> max()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 22 }
+            ]
+          },
+          "unit": "kwatt",
+          "mappings": [
+            { "type": "range", "options": { "from": 22, "to": 999, "result": { "text": "⚡ OVERLOAD ALERT", "color": "red" } } },
+            { "type": "range", "options": { "from": 0, "to": 21.99, "result": { "text": "✅ Normal", "color": "green" } } }
+          ]
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 6 },
+      "id": 9,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["max"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "⚡ Overload Alert (Power > 22 kW)",
+      "type": "stat",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Power\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> max()",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 10 },
+      "id": 102,
+      "title": "📈 Live Trends",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisLabel": "Voltage (V)",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "scheme",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": true
+          },
+          "unit": "volt"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 11 },
+      "id": 10,
+      "options": {
+        "legend": { "calcs": ["mean", "max", "min"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "⚡ Voltage vs Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Voltage\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisLabel": "Current (A)",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "scheme",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": true
+          },
+          "unit": "amp"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 11 },
+      "id": 11,
+      "options": {
+        "legend": { "calcs": ["mean", "max", "min"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "🔌 Current vs Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Current\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisLabel": "Power (kW)",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "scheme",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": true
+          },
+          "unit": "kwatt"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 19 },
+      "id": 12,
+      "options": {
+        "legend": { "calcs": ["mean", "max", "min"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "💡 Power vs Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Power\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisLabel": "Energy (kWh)",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "scheme",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": true
+          },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 19 },
+      "id": 13,
+      "options": {
+        "legend": { "calcs": ["mean", "max", "min"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "🔋 Energy vs Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Energy\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisLabel": "Temperature (°C)",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "scheme",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": true
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 27 },
+      "id": 14,
+      "options": {
+        "legend": { "calcs": ["mean", "max", "min"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "🌡️ Temperature vs Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Temperature\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisLabel": "Frequency (Hz)",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "scheme",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": true
+          },
+          "unit": "hertz"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 27 },
+      "id": 15,
+      "options": {
+        "legend": { "calcs": ["mean", "max", "min"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "〰️ Frequency vs Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Frequency\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 },
+      "id": 103,
+      "title": "📊 Gauges",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "#EAB839", "value": 18 },
+              { "color": "red", "value": 22 }
+            ]
+          },
+          "min": 0,
+          "max": 30,
+          "unit": "kwatt"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 36 },
+      "id": 16,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "title": "💡 Power Gauge",
+      "type": "gauge",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Power\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> group()\n  |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "#EAB839", "value": 405 },
+              { "color": "green", "value": 410 },
+              { "color": "#EAB839", "value": 420 },
+              { "color": "red", "value": 425 }
+            ]
+          },
+          "min": 400,
+          "max": 430,
+          "unit": "volt"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 36 },
+      "id": 17,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "title": "⚡ Voltage Gauge",
+      "type": "gauge",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Voltage\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> group()\n  |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "#EAB839", "value": 25 },
+              { "color": "red", "value": 32 }
+            ]
+          },
+          "min": 0,
+          "max": 40,
+          "unit": "amp"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 36 },
+      "id": 18,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "title": "🔌 Current Gauge",
+      "type": "gauge",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Current\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> group()\n  |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "#EAB839", "value": 0.92 },
+              { "color": "green", "value": 0.96 }
+            ]
+          },
+          "min": 0.85,
+          "max": 1.0,
+          "unit": "none",
+          "decimals": 3
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 36 },
+      "id": 19,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "title": "📐 Power Factor Gauge",
+      "type": "gauge",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"PowerFactor\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> group()\n  |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 44 },
+      "id": 104,
+      "title": "📊 Machine Analysis",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 45 },
+      "id": 20,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "tooltip": { "mode": "single" }
+      },
+      "title": "🥧 Machine-wise Energy Consumption",
+      "type": "piechart",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Energy\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> group(columns: [\"Machine\"])\n  |> sum()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "kwatt",
+          "custom": {
+            "axisCenteredZero": false,
+            "axisLabel": "Power (kW)",
+            "fillOpacity": 80,
+            "gradientMode": "hue",
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 45 },
+      "id": 21,
+      "options": {
+        "barWidth": 0.7,
+        "groupWidth": 0.7,
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "orientation": "horizontal",
+        "showValue": "always",
+        "stacking": "none",
+        "tooltip": { "mode": "single" },
+        "xTickLabelRotation": 0
+      },
+      "title": "📊 Machine-wise Power Consumption",
+      "type": "barchart",
+      "targets": [
+        {
+          "query": "from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Power\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> group(columns: [\"Machine\"])\n  |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 55 },
+      "id": 105,
+      "title": "📋 Machine Status",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "displayMode": "auto",
+            "filterable": true
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Status" },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "Running":     { "text": "🟢 Running",     "color": "green" } } },
+                  { "type": "value", "options": { "Idle":        { "text": "🟡 Idle",        "color": "yellow" } } },
+                  { "type": "value", "options": { "Maintenance": { "text": "🔵 Maintenance", "color": "blue" } } },
+                  { "type": "value", "options": { "Fault":       { "text": "🔴 Fault",       "color": "red" } } }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Temperature" },
+            "properties": [
+              { "id": "unit", "value": "celsius" },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 55 },
+                    { "color": "red", "value": 65 }
+                  ]
+                }
+              },
+              { "id": "custom.displayMode", "value": "color-background" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Power" },
+            "properties": [
+              { "id": "unit", "value": "kwatt" },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 18 },
+                    { "color": "red", "value": 22 }
+                  ]
+                }
+              },
+              { "id": "custom.displayMode", "value": "color-background" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Voltage" },
+            "properties": [{ "id": "unit", "value": "volt" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Current" },
+            "properties": [{ "id": "unit", "value": "amp" }]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 56 },
+      "id": 22,
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "displayName": "Machine", "desc": false }],
+        "footer": { "show": false }
+      },
+      "title": "📋 Latest Machine Status",
+      "type": "table",
+      "targets": [
+        {
+          "query": "import \"strings\"\n\nmachines = from(bucket: \"energy-readings\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"SandPlant\")\n  |> filter(fn: (r) => r._field == \"Power\" or r._field == \"Voltage\" or r._field == \"Current\" or r._field == \"Temperature\")\n  |> filter(fn: (r) => r.Machine =~ /${machine:regex}/)\n  |> filter(fn: (r) => r.Status =~ /${status:regex}/)\n  |> last()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group()\n  |> keep(columns: [\"Machine\", \"Status\", \"Power\", \"Voltage\", \"Current\", \"Temperature\"])\n\nmachines",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["industrial", "sand-plant", "energy", "iot"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "definition": "",
+        "includeAll": true,
+        "multi": true,
+        "name": "machine",
+        "label": "Machine",
+        "query": "import \"influxdata/influxdb/schema\"\n\nschema.tagValues(bucket: \"energy-readings\", tag: \"Machine\")",
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "definition": "",
+        "includeAll": true,
+        "multi": true,
+        "name": "status",
+        "label": "Status",
+        "query": "import \"influxdata/influxdb/schema\"\n\nschema.tagValues(bucket: \"energy-readings\", tag: \"Status\")",
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {
+    "refresh_intervals": ["2s", "5s", "10s", "30s", "1m", "5m", "15m"],
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d"]
+  },
+  "timezone": "browser",
+  "title": "Sand Plant Energy Monitoring",
+  "uid": "sand-plant-energy",
+  "version": 1
+}
+
